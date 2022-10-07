@@ -9,6 +9,8 @@ datetime = "*"
 python-slugify = "==6.1.1"
 humanize = "*"
 pytz = "*"
+pandas = "*"
+plotly = "*"
 
 [dev-packages]
 

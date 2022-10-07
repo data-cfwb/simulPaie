@@ -1,10 +1,7 @@
 import streamlit as st
-import time
-import datetime as dt
-import humanize
 import pandas as pd
+import plotly.express as px
 
-humanize.i18n.activate("fr_FR")
 
 st.set_page_config(layout="centered", page_icon="💁‍♂️", page_title="Simulateur de paie")
 
@@ -52,20 +49,25 @@ with st.form(key="my_form"):
 
 
         # show the salary evolution
-        st.subheader("Évolution du salaire")
 
         # get only columns bareme and anciennete
         df_echelle = df.loc[df['echelle'] == echelle, ['bareme', 'anciennete']]
-        # use anciennete as index
-        df_echelle = df_echelle.set_index('anciennete')
-
-        # show the salary evolution
-        st.line_chart(df_echelle)
-
-        # add a point on the chart
- 
-      
         
+        # rename columns
+        df_echelle = df_echelle.rename(columns={'bareme': 'Barème salarial', 'anciennete': 'Ancienneté en années'})
+        
+        
+        # show the salary evolution
+        fig = px.line(df_echelle, x="Ancienneté en années", y="Barème salarial", title="Evolution du barème salarial")
+
+        
+        # add vertical line
+        fig.add_vline(x=anciennete, line_width=3, line_dash="dash", line_color="green")
+
+        # add horizontal line
+        fig.add_hline(y=bareme, line_width=3, line_dash="dash", line_color="green")
+
+        st.plotly_chart(fig, use_container_width=False)       
 
       
 
@@ -73,5 +75,5 @@ with st.form(key="my_form"):
 st.markdown("""
 This app is a work in progress and has been made by the [Data Office](https://github.com/data-cfwb) of CFWB. 
 
-Source code is available on [GitHub](https://github.com/data-cfwb/reuNiote/).
+Source code is available on [GitHub](https://github.com/data-cfwb/simulPaie/).
 """)
