@@ -29,13 +29,13 @@ list_of_echelles = df['echelle'].unique()
 with st.form(key="my_form"):
     col1, col2 = st.columns(2)
 
-    echelles = col1.selectbox("Echelles de bareme", list_of_echelles)
+    echelle = col1.selectbox("Echelles de bareme", list_of_echelles)
     anciennete = col2.selectbox("Ancienneté", df['anciennete'].unique())
     submit_button = st.form_submit_button(label="Calculer")
 
     if submit_button:
         # loc correct bareme from df
-        bareme = df.loc[(df['echelle'] == echelles) & (df['anciennete'] == anciennete), 'bareme'].values[0]
+        bareme = df.loc[(df['echelle'] == echelle) & (df['anciennete'] == anciennete), 'bareme'].values[0]
 
         # calculate salary
         yearly_salary = round(bareme * index, 2)
@@ -50,6 +50,24 @@ with st.form(key="my_form"):
         col1.metric("Salaire brut annuel", f"{yearly_salary} €")
         col2.metric("Salaire brut mensuel", f"{monthly_salary} €")
 
+
+        # show the salary evolution
+        st.subheader("Évolution du salaire")
+
+        # get only columns bareme and anciennete
+        df_echelle = df.loc[df['echelle'] == echelle, ['bareme', 'anciennete']]
+        # use anciennete as index
+        df_echelle = df_echelle.set_index('anciennete')
+
+        # show the salary evolution
+        st.line_chart(df_echelle)
+
+        # add a point on the chart
+ 
+      
+        
+
+      
 
 
 st.markdown("""
