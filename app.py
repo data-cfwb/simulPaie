@@ -34,6 +34,7 @@ with st.form(key="my_form"):
 
     echelle = col1.selectbox("Echelles de bareme", list_of_echelles)
     anciennete = col2.selectbox("Ancienneté", df['anciennete'].unique())
+    etp = col1.number_input("ETP", min_value=0.0, max_value=1.0, value=1.0, step=0.05)
     submit_button = st.form_submit_button(label="Calculer")
 
     if submit_button:
@@ -41,7 +42,7 @@ with st.form(key="my_form"):
         bareme = df.loc[(df['echelle'] == echelle) & (df['anciennete'] == anciennete), 'bareme'].values[0]
 
         # calculate salary
-        yearly_salary = round(bareme * index, 2)
+        yearly_salary = round(bareme * index * etp, 2)
         monthly_salary = round(yearly_salary / 12, 2)
 
         # add a column for indexed salary
@@ -49,7 +50,7 @@ with st.form(key="my_form"):
             diff_anciennete = df.loc[i, 'anciennete'] - anciennete
             
             # multiply bareme with index
-            df.loc[i, 'bareme'] = round(df.loc[i, 'bareme'] * index, 2)
+            df.loc[i, 'bareme'] = round(df.loc[i, 'bareme'] * index * etp, 2)
 
             if diff_anciennete > 0:
                 df.loc[i, 'indexed_salary'] = round(df.loc[i, 'bareme'] * (1.01 ** diff_anciennete), 2)
