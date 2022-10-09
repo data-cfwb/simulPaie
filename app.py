@@ -52,10 +52,15 @@ with st.form(key="my_form"):
             # multiply bareme with index
             df.loc[i, 'bareme'] = round(df.loc[i, 'bareme'] * index * etp, 2)
 
+            df.loc[i, 'indexed_salary'] = round(df.loc[i, 'bareme'], 2)
+
             if diff_anciennete > 0:
                 df.loc[i, 'indexed_salary'] = round(df.loc[i, 'bareme'] * (1.01 ** diff_anciennete), 2)
-            else:
-                df.loc[i, 'indexed_salary'] = round(df.loc[i, 'bareme'], 2)
+
+        # add daily salary
+        df['daily_salary_cal_day'] = round(df['indexed_salary'] / 360, 2)
+        df['daily_salary_business_day'] = round(df['indexed_salary'] / 220, 2)
+        df['daily_salary_w_company_cost'] = round(df['indexed_salary'] / 360 * 1.385, 2)
 
         st.write(f"Index: {index}") 
         st.write(f"Valide depuis le {valid_from}")
@@ -71,11 +76,25 @@ with st.form(key="my_form"):
         # rename columns
         df_echelle = df_echelle.rename(columns={'bareme': 'Barème salarial', 'anciennete': 'Ancienneté en années', 'indexed_salary': 'Salaire brut annuel indexé'})
         
-        # show the salary evolution
-        fig = px.line(df_echelle, x="Ancienneté en années", y="Barème salarial", title="Evolution du barème salarial")
+        # plot
+        fig = px.line(df_echelle, x='Ancienneté en années', y='Salaire brut annuel indexé', title=f"Barème salarial {echelle}")
 
+  
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Barème salarial'], name='Barème salarial')
+        
         # add new line for indexed salary
         fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé à 1% par année")
+
+        # add scatter for day salary
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_cal_day'], name="Salaire brut journalier (calculé sur 360 jours)")
+
+        # add scatter for day salary on other axis
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
+
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
+
+        # add scatter for day salary
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_w_company_cost'], name="Salaire brut journalier (calculé sur 220 jours avec les charges de l'entreprise)")
 
         # display legend
         fig.update_layout(showlegend=True, legend=dict(
@@ -87,10 +106,10 @@ with st.form(key="my_form"):
 
 
         # add vertical line
-        fig.add_vline(x=anciennete, line_width=1, line_dash="dash", line_color="green")
+        # fig.add_vline(x=anciennete, line_width=1, line_dash="dash", line_color="green")
 
-        # add horizontal line
-        fig.add_hline(y=yearly_salary, line_width=1, line_dash="dash", line_color="green")
+        # # add horizontal line
+        # fig.add_hline(y=yearly_salary, line_width=1, line_dash="dash", line_color="green")
 
         st.plotly_chart(fig, use_container_width=False)       
 
