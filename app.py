@@ -1,7 +1,8 @@
+from datetime import datetime
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
+from plotly.subplots import make_subplots
 
 st.set_page_config(layout="centered", page_icon="💁‍♂️", page_title="Simulateur de paie")
 
@@ -17,14 +18,17 @@ right.image("https://raw.githubusercontent.com/data-cfwb/.github/main/logo_data_
 
 df = pd.read_csv('./effectifs_echelles.csv')
 
-index = 1.9222
-valid_from = "2022-09-01"
+index_df = pd.read_csv('./index_df.csv', sep=';')
 
-index_df = pd.DataFrame({
-    'valid_since': ['2022-06-01', '2022-09-01', '2023-01-01', '2024-01-01'], 
-    'index': [1.8845, 1.9222, 2.1111, 2.2000],
-    'status': ['active', 'active', 'estimation', 'estimation']
-})
+#convert to datetime
+index_df['valid_since'] = pd.to_datetime(index_df['valid_since'], format='%d/%m/%Y')
+# convert to float
+index_df['index'] = index_df['index'].str.replace(',', '.').astype(float)
+# get index for current year
+index_current_year = index_df[index_df['valid_since'] <= datetime.now()].iloc[-1]
+
+index = index_current_year['index']
+valid_from = index_current_year['valid_since'].strftime('%Y-%m-%d')
 
 list_of_echelles = df['echelle'].unique()
 
@@ -63,7 +67,7 @@ with st.form(key="my_form"):
         df['daily_salary_w_company_cost'] = round(df['indexed_salary'] / 360 * 1.385, 2)
 
         st.write(f"Index: {index}") 
-        st.write(f"Valide depuis le {valid_from}")
+        st.write(f"Valide depuis le {valid_from} (source: [BOSA](https://bosa.belgium.be/fr/themes/travailler-dans-la-fonction-publique/remuneration-et-avantages/traitement/indexation-0))")
         # 
         col1, col2 = st.columns(2)
         col1.metric("Salaire brut annuel", f"{yearly_salary} €")
@@ -76,46 +80,52 @@ with st.form(key="my_form"):
         # rename columns
         df_echelle = df_echelle.rename(columns={'bareme': 'Barème salarial', 'anciennete': 'Ancienneté en années', 'indexed_salary': 'Salaire brut annuel indexé'})
         
-        # plot
-        fig = px.line(df_echelle, x='Ancienneté en années', y='Salaire brut annuel indexé', title=f"Barème salarial {echelle}")
-
-  
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Barème salarial'], name='Barème salarial')
+        subfig = make_subplots(specs=[[{"secondary_y": True}]])
         
-        # add new line for indexed salary
+        # create two independent figures with px.line each containing data from multiple columns
+        fig = px.line()
         fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé à 1% par année")
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Barème salarial'], name='Barème salarial')
+        # add vertical line
 
-        # add scatter for day salary
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_cal_day'], name="Salaire brut journalier (calculé sur 360 jours)")
-
+        fig2 = px.line()
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_cal_day'], name="Salaire brut journalier (calculé sur 360 jours)")
         # add scatter for day salary on other axis
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
 
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
 
         # add scatter for day salary
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_w_company_cost'], name="Salaire brut journalier (calculé sur 220 jours avec les charges de l'entreprise)")
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df['daily_salary_w_company_cost'], name="Salaire brut journalier (calculé sur 220 jours avec les charges de l'entreprise)")
 
-        # display legend
-        fig.update_layout(showlegend=True, legend=dict(
+        fig2.update_traces(yaxis="y2")
+
+        subfig.add_traces(fig.data + fig2.data)
+
+        subfig.layout.xaxis.title="Ancienneté en années"
+        subfig.layout.yaxis.title="Montants annuels en €"
+        subfig.layout.yaxis2.title="Montants journaliers en €"
+        # recoloring is necessary otherwise lines from fig und fig2 would share each color
+        # e.g. Linear-, Log- = blue; Linear+, Log+ = red... we don't want this
+        subfig.for_each_trace(lambda t: t.update(line=dict(color=t.marker.color)))
+
+       
+        # display legend outside of plot
+
+        subfig.update_layout(showlegend=True, height=800, legend=dict(
             yanchor="top",
-            y=0.99,
+            y=-0.99,
             xanchor="left",
             x=0.01
         ))
 
 
-        # add vertical line
-        # fig.add_vline(x=anciennete, line_width=1, line_dash="dash", line_color="green")
+        subfig.add_vline(x=anciennete, line_width=1, line_dash="dash", line_color="green")
 
-        # # add horizontal line
-        # fig.add_hline(y=yearly_salary, line_width=1, line_dash="dash", line_color="green")
-
-        st.plotly_chart(fig, use_container_width=False)       
+        
+        st.plotly_chart(subfig, use_container_width=False)       
 
       
-
-
 st.markdown("""
 This app is a work in progress and has been made by the [Data Office](https://github.com/data-cfwb) of CFWB. 
 
