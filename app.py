@@ -97,7 +97,7 @@ with st.form(key="my_form"):
         current_date = datetime.now().strftime('%Y-%m-%d')
 
         col1.metric("Salaire brut mensuel", f"{monthly_salary} €", f"{yearly_salary} €/an")
-        col2.metric(f"Index au {current_date}", f"{index} €", f"Valide depuis le {valid_from}", delta_color="off")
+        col2.metric(f"Index au {current_date}", f"{index}", f"Valide depuis le {valid_from}", delta_color="off")
 
         # show table
         st.dataframe(df_echelle)
