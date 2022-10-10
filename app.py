@@ -77,12 +77,14 @@ with st.form(key="my_form"):
             df_echelle.loc[idx, 'index'] = index_year['index']
 
 
+        # define index of df
+        df_echelle.set_index('year', inplace=True)
 
         df_echelle['etp'] = etp
         df_echelle['indexed_salary'] = df_echelle['bareme'] * df_echelle['index'] * df_echelle['etp']
 
         # add daily salary
-        df_echelle['daily_salary_cal_day'] = round(df_echelle['indexed_salary'] / 360, 2)
+        df_echelle['daily_salary_cal_day'] = round(df_echelle['indexed_salary'] / 360 / etp, 2)
         df_echelle['daily_salary_business_day'] = round(df_echelle['indexed_salary'] / 220, 2)
         df_echelle['daily_salary_w_company_cost'] = round(df_echelle['indexed_salary'] / 360 * 1.385, 2)
     
@@ -127,16 +129,14 @@ with st.form(key="my_form"):
         subfig.layout.xaxis.title="Ancienneté en années"
         subfig.layout.yaxis.title="Montants annuels en €"
         subfig.layout.yaxis2.title="Montants journaliers en €"
-        # recoloring is necessary otherwise lines from fig und fig2 would share each color
-        # e.g. Linear-, Log- = blue; Linear+, Log+ = red... we don't want this
+
         subfig.for_each_trace(lambda t: t.update(line=dict(color=t.marker.color)))
 
-       
         # display legend outside of plot
 
-        subfig.update_layout(showlegend=True, height=800, legend=dict(
+        subfig.update_layout(showlegend=True, height=600, legend=dict(
             yanchor="top",
-            y=-0.99,
+            y=-0.2,
             xanchor="left",
             x=0.01
         ))
