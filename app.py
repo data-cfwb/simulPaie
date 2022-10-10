@@ -88,7 +88,6 @@ with st.form(key="my_form"):
         df_echelle['daily_salary_business_day'] = round(df_echelle['indexed_salary'] / 220, 2)
         df_echelle['daily_salary_w_company_cost'] = round(df_echelle['indexed_salary'] / 360 * 1.385, 2)
     
-
         st.write(f"Index: {index}") 
         st.write(f"Valide depuis le {valid_from} (source: [BOSA](https://bosa.belgium.be/fr/themes/travailler-dans-la-fonction-publique/remuneration-et-avantages/traitement/indexation-0))")
         # 
@@ -99,9 +98,17 @@ with st.form(key="my_form"):
         col1.metric("Salaire brut mensuel", f"{monthly_salary} €", f"{yearly_salary} €/an")
         col2.metric(f"Index au {current_date}", f"{index} €", f"Valide depuis le {valid_from}", delta_color="off")
 
-
         # show table
         st.dataframe(df_echelle)
+
+        st.markdown(f"""
+            ## Les hypothèses sont les suivantes:
+            - 1 an = 12 mois et 1 mois = 30 jours
+            - 1 an = **220 jours ouvrables** (avec jours fériés)
+            - 1 journée = 7.6 heures ou 7h36
+            - les charges patronales sont estimée à 38.5%
+            - l'index suit une courbe linéaire prédite à travers un modèle ARIMA (méthode décrite [ici](https://github.com/data-cfwb/simulPaie/blob/main/index_arima.ipynb))
+            """)
 
         # rename columns
         df_echelle = df_echelle.rename(columns={'bareme': 'Barème salarial', 'anciennete': 'Ancienneté en années', 'indexed_salary': 'Salaire brut annuel indexé'})
