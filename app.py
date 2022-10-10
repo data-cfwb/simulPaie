@@ -71,16 +71,15 @@ with st.form(key="my_form"):
 
             diff_anciennete = df_echelle.loc[idx, 'anciennete'] - anciennete
 
-            # multiply bareme with index
-            df_echelle.loc[idx, 'bareme'] = round(df_echelle.loc[idx, 'bareme'] * index * etp, 2)
-
-
             # add index of the year of ['year'] to the dataframe
-            #
             year = df_echelle.loc[idx, 'year']
-            index_year = index_df[index_df['valid_since'] <= datetime(year, 1, 1)].iloc[-1]
+            current_day = int(datetime.now().strftime('%d'))
+            current_month = int(datetime.now().strftime('%m'))
+            index_year = index_df[index_df['valid_since'] <= datetime(year, current_month, current_day)].iloc[-1]
             df_echelle.loc[idx, 'index'] = index_year['index']
-          
+
+            # df_echelle.loc[idx, 'bareme'] = df_echelle.loc[idx, 'bareme']
+
         # get only columns bareme and anciennete
 
         df_echelle['etp'] = etp
