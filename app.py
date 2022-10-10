@@ -14,7 +14,7 @@ left.markdown("""
     """
 )
 
-right.image("https://raw.githubusercontent.com/data-cfwb/.github/main/logo_data_office.png", width=150)
+right.image("https://avatars.githubusercontent.com/u/104143126?s=400&u=4378e8c74a05dc497c8956fa95fd910e64963feb", width=150)
 
 df = pd.read_csv('./effectifs_echelles.csv')
 
