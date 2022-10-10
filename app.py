@@ -61,9 +61,7 @@ with st.form(key="my_form"):
         monthly_salary = round(yearly_salary / 12, 2)
 
         df_echelle = df.loc[df['echelle'] == echelle, ['bareme', 'anciennete']]
-
         df_echelle['diff_anciennete'] = df_echelle['anciennete'] - anciennete
-
         df_echelle['year'] = datetime.now().year + df_echelle['diff_anciennete']
 
         # loop over rows with iterrows()
@@ -78,13 +76,11 @@ with st.form(key="my_form"):
             index_year = index_df[index_df['valid_since'] <= datetime(year, current_month, current_day)].iloc[-1]
             df_echelle.loc[idx, 'index'] = index_year['index']
 
-            # df_echelle.loc[idx, 'bareme'] = df_echelle.loc[idx, 'bareme']
 
-        # get only columns bareme and anciennete
 
         df_echelle['etp'] = etp
-
         df_echelle['indexed_salary'] = df_echelle['bareme'] * df_echelle['index'] * df_echelle['etp']
+
         # add daily salary
         df_echelle['daily_salary_cal_day'] = round(df_echelle['indexed_salary'] / 360, 2)
         df_echelle['daily_salary_business_day'] = round(df_echelle['indexed_salary'] / 220, 2)
@@ -112,17 +108,17 @@ with st.form(key="my_form"):
         
         # create two independent figures with px.line each containing data from multiple columns
         fig = px.line()
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé à 1% par année")
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé")
         fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Barème salarial'], name='Barème salarial')
         # add vertical line
 
         fig2 = px.line()
         fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_cal_day'], name="Salaire brut journalier (calculé sur 360 jours)")
         # add scatter for day salary on other axis
-        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_business_day'], name="Salaire brut journalier (calculé sur 220 jours)")
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_business_day'], name="Salaire brut journalier (sur 220 jours)")
 
         # add scatter for day salary
-        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_w_company_cost'], name="Salaire brut journalier (calculé sur 220 jours avec les charges de l'entreprise)")
+        fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_w_company_cost'], name="Cout brut journalier (sur 220 jours avec les charges de l'entreprise)")
 
         fig2.update_traces(yaxis="y2")
 
