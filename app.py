@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
+import base64
 
 st.set_page_config(layout="centered", page_icon="💁‍♂️", page_title="Simulateur de paie")
 
@@ -101,12 +102,24 @@ with st.form(key="my_form"):
         # show table
         st.dataframe(df_echelle)
 
+       # download dataframe 
+        csv = df_echelle.to_csv(index=True)
+        b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+        echelle_file = echelle.replace('/', '_')
+
+        filename = f"{echelle_file}_anc_{anciennete}_etp{etp}_{current_date}.csv"
+
+        href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Télécharger le tableau</a>'
+        st.markdown(href, unsafe_allow_html=True)
+
+
+
         st.markdown(f"""
-            ## Les hypothèses sont les suivantes:
+            ### Les hypothèses sont les suivantes:
             - 1 an = 12 mois et 1 mois = 30 jours
             - 1 an = **220 jours ouvrables** (avec jours fériés)
-            - 1 journée = 7.6 heures ou 7h36
-            - les charges patronales sont estimée à 38.5%
+            - 1 journée = 7.6 heures ou **07h36**
+            - les charges patronales sont estimée à **38.50 %**
             - l'index suit une courbe linéaire prédite à travers un modèle ARIMA (méthode décrite [ici](https://github.com/data-cfwb/simulPaie/blob/main/index_arima.ipynb))
             """)
 
@@ -117,16 +130,14 @@ with st.form(key="my_form"):
         
         # create two independent figures with px.line each containing data from multiple columns
         fig = px.line()
-        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé")
         fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Barème salarial'], name='Barème salarial')
-        # add vertical line
+        fig.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['Salaire brut annuel indexé'], name="Salaire brut annuel indexé")
 
+        
         fig2 = px.line()
+        
         fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_cal_day'], name="Salaire brut journalier (calculé sur 360 jours)")
-        # add scatter for day salary on other axis
         fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_business_day'], name="Salaire brut journalier (sur 220 jours)")
-
-        # add scatter for day salary
         fig2.add_scatter(x=df_echelle['Ancienneté en années'], y=df_echelle['daily_salary_w_company_cost'], name="Cout brut journalier (sur 220 jours avec les charges de l'entreprise)")
 
         fig2.update_traces(yaxis="y2")
