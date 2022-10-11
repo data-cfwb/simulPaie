@@ -47,11 +47,11 @@ list_of_echelles = df['echelle'].unique()
 
 # form with bareme and anciennete
 with st.form(key="my_form"):
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     echelle = col1.selectbox("Echelles de bareme", list_of_echelles)
     anciennete = col2.selectbox("Ancienneté", df['anciennete'].unique())
-    etp = col1.number_input("ETP", min_value=0.0, max_value=1.0, value=1.0, step=0.05)
+    etp = col3.number_input("ETP", min_value=0.0, max_value=1.0, value=1.0, step=0.05)
     submit_button = st.form_submit_button(label="Calculer")
 
     if submit_button:
@@ -116,11 +116,11 @@ with st.form(key="my_form"):
 
 
         st.markdown(f"""
-            ### Les hypothèses sont les suivantes:
-            - 1 an = 12 mois et 1 mois = 30 jours
-            - 1 an = **220 jours ouvrables**
-            - 1 journée = 7,60 heures ou **07h36**
-            - les charges patronales sont estimée à **38.50 %**
+            **Les hypothèses sont les suivantes:**
+            - 1 an = 12 mois et 1 mois ;
+            - 1 an = **220 jours ouvrables** ;
+            - 1 journée = 7,60 heures ou **07h36** ;
+            - les charges patronales sont estimée à **38,50 %** ;
             - l'index suit une courbe linéaire prédite à travers un modèle ARIMA (méthode décrite [ici](https://github.com/data-cfwb/simulPaie/blob/main/index_arima.ipynb))
             """)
 
