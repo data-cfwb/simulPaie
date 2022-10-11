@@ -5,7 +5,8 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import base64
 
-st.set_page_config(layout="centered", page_icon="💁‍♂️", page_title="Simulateur de paie")
+# Set the page layout to wide
+st.set_page_config(layout="wide", page_icon="💁‍♂️", page_title="Simulateur de paie")
 
 st.write(
     """
@@ -117,8 +118,8 @@ with st.form(key="my_form"):
         st.markdown(f"""
             ### Les hypothèses sont les suivantes:
             - 1 an = 12 mois et 1 mois = 30 jours
-            - 1 an = **220 jours ouvrables** (avec jours fériés)
-            - 1 journée = 7.6 heures ou **07h36**
+            - 1 an = **220 jours ouvrables**
+            - 1 journée = 7,60 heures ou **07h36**
             - les charges patronales sont estimée à **38.50 %**
             - l'index suit une courbe linéaire prédite à travers un modèle ARIMA (méthode décrite [ici](https://github.com/data-cfwb/simulPaie/blob/main/index_arima.ipynb))
             """)
@@ -152,7 +153,7 @@ with st.form(key="my_form"):
 
         # display legend outside of plot
 
-        subfig.update_layout(showlegend=True, height=600, legend=dict(
+        subfig.update_layout(showlegend=True, height=600, width=1000, legend=dict(
             yanchor="top",
             y=-0.2,
             xanchor="left",
