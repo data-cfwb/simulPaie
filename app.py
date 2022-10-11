@@ -34,7 +34,7 @@ df = pd.read_csv('./effectifs_echelles.csv')
 index_df = pd.read_csv('./index_df_with_prediction.csv', sep=',')
 
 #convert to datetime
-index_df['valid_since'] = pd.to_datetime(index_df['valid_since'], format='%Y/%m/%d')
+index_df['valid_since'] = pd.to_datetime(index_df['valid_since'], format='%Y-%m-%d')
 # convert to float
 index_df['index'] = index_df['index'].astype(float)
 # get index for current year
@@ -52,17 +52,18 @@ with st.form(key="my_form"):
     echelle = col1.selectbox("Echelles de bareme", list_of_echelles)
     anciennete = col2.selectbox("Ancienneté", df['anciennete'].unique())
     etp = col3.number_input("ETP", min_value=0.0, max_value=1.0, value=1.0, step=0.05)
+
     submit_button = st.form_submit_button(label="Calculer")
 
     if submit_button:
-        # loc correct bareme from df
-        bareme = df.loc[(df['echelle'] == echelle) & (df['anciennete'] == anciennete), 'bareme'].values[0]
+
+        df_echelle = df.loc[df['echelle'] == echelle, ['bareme', 'anciennete']]
+        bareme = df_echelle.loc[df_echelle['anciennete'] == anciennete, 'bareme'].values[0]
     
         # calculate salary
         yearly_salary = round(bareme * index * etp, 2)
         monthly_salary = round(yearly_salary / 12, 2)
 
-        df_echelle = df.loc[df['echelle'] == echelle, ['bareme', 'anciennete']]
         df_echelle['diff_anciennete'] = df_echelle['anciennete'] - anciennete
         df_echelle['year'] = datetime.now().year + df_echelle['diff_anciennete']
 
@@ -73,11 +74,9 @@ with st.form(key="my_form"):
 
             # add index of the year of ['year'] to the dataframe
             year = df_echelle.loc[idx, 'year']
-            current_day = int(datetime.now().strftime('%d'))
-            current_month = int(datetime.now().strftime('%m'))
-            index_year = index_df[index_df['valid_since'] <= datetime(year, current_month, current_day)].iloc[-1]
+            index_year = index_df[index_df['valid_since'] <= datetime(year, int(datetime.now().strftime('%d')), int(datetime.now().strftime('%m')))].iloc[-1]
+            
             df_echelle.loc[idx, 'index'] = index_year['index']
-
 
         # define index of df
         df_echelle.set_index('year', inplace=True)
@@ -152,7 +151,6 @@ with st.form(key="my_form"):
         subfig.for_each_trace(lambda t: t.update(line=dict(color=t.marker.color)))
 
         # display legend outside of plot
-
         subfig.update_layout(showlegend=True, height=600, width=1000, legend=dict(
             yanchor="top",
             y=-0.2,
