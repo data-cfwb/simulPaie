@@ -72,9 +72,16 @@ with st.form(key="my_form"):
 
             diff_anciennete = df_echelle.loc[idx, 'anciennete'] - anciennete
 
+            current_month = datetime.now().month
+            
             # add index of the year of ['year'] to the dataframe
             year = df_echelle.loc[idx, 'year']
-            index_year = index_df[index_df['valid_since'] <= datetime(year, int(datetime.now().strftime('%d')), int(datetime.now().strftime('%m')))].iloc[-1]
+            index_year = index_df[index_df['valid_since'] <= datetime(
+                year, 
+                datetime.now().month, 
+                datetime.now().day
+                )
+                ].iloc[-1]
             
             df_echelle.loc[idx, 'index'] = index_year['index']
 
@@ -89,9 +96,6 @@ with st.form(key="my_form"):
         df_echelle['daily_salary_business_day'] = round(df_echelle['indexed_salary'] / 220, 2)
         df_echelle['daily_salary_w_company_cost'] = round(df_echelle['indexed_salary'] / 360 * 1.385, 2)
     
-        st.write(f"Index: {index}") 
-        st.write(f"Valide depuis le {valid_from} (source: [BOSA](https://bosa.belgium.be/fr/themes/travailler-dans-la-fonction-publique/remuneration-et-avantages/traitement/indexation-0))")
-        # 
         col1, col2 = st.columns(2)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
